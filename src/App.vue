@@ -1,7 +1,9 @@
 <template>
   <div id="app">
     <!-- <img alt="Vue logo" src="./assets/logo.png" width="100"> -->
-    <TicTacToe></TicTacToe>
+    <div class="game-content">
+      <TicTacToe></TicTacToe>
+    </div>
   </div>
 </template>
 
@@ -20,7 +22,7 @@ export default {
 
 <style lang="scss">
 * {
-  
+  box-sizing: border-box;
 }
 body, html {
   margin: 0;
@@ -37,5 +39,8 @@ body, html {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+.game-content {
+  width: 300px;
 }
 </style>

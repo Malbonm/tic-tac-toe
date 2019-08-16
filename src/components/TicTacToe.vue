@@ -1,7 +1,7 @@
 <template>
-  <div class="game-content">
-    <div class="gameInfo">
-      <div class="form" v-show="symbols !== 'full'">
+  <div>
+    <div class="game-board">
+      <div class="game-board__register" v-show="symbols !== 'full'">
         <input type="text" placeholder="Name" v-model="playerRegister.name">
         <button v-for="(sym, index) in symbols" :key="index" @click="symChosen(sym)"
         :class="{'symBtnActive' : playerRegister.symbol === sym}" class="symBtn"
@@ -10,43 +10,58 @@
         </button>
         <button @click="createUser">Crear</button>
       </div>
-      <div class="board">
-
-        <div v-if="msg.length > 1" style="margin-top: 2rem; font-size: 14px;">{{msg}}</div>
-
-        <div class="">
-          <h2 v-if="players[0]">{{players[0].name}}</h2>
-          <h2 v-if="players[1]">{{players[1].name}}</h2>
+      <div class="game-board__info">
+        <div class="msgAlert" v-if="gameStat === 'OFF'" style="margin-top: 2rem;">
+          {{msg}}
+        </div>
+        <div v-if="gameStat === 'ON'" class="player-board">
+          <div class="player-board__descriptions">
+            <div style="font-size: 24px; font-weight: 600;">{{players[0].name}}</div>
+            <div style="font-size: 24px; font-weight: 600;">{{players[1].name}}</div>
+          </div>
+          <div class="player-board__stats">
+            <div>
+              <span style="font-size: 24px; font-weight: 600; margin-right: 10px;">{{this.players[0].ranking.win}}</span>
+              <span style="font-size: 24px; font-weight: 600;">{{this.players[0].ranking.losses}}</span>
+            </div>
+            <div>
+              <span style="font-size: 24px; font-weight: 600; margin-right: 10px;">{{this.players[1].ranking.win}}</span>
+              <span style="font-size: 24px; font-weight: 600;">{{this.players[1].ranking.losses}}</span>
+            </div>
+          </div>
+          <div class="player-board__turn">
+            <h2>{{this.players[turn].symbol}}</h2>
+          </div>
         </div>
       </div>
     </div>
-    <div class="tictac grid">
+    <div class="tictactoe-grid">
       <div class="A1 grat" @click.self="paint('A', '0', turn)">
-        <span>{{tictacFrame.A[0]}}</span>
+        <span>{{tictacBoard.A[0]}}</span>
       </div>
       <div class="A2 grat" @click.self="paint('A', '1', turn)">
-        <span>{{tictacFrame.A[1]}}</span>
+        <span>{{tictacBoard.A[1]}}</span>
       </div>
       <div class="A3 grat" @click.self="paint('A', '2', turn)">
-        <span>{{tictacFrame.A[2]}}</span>
+        <span>{{tictacBoard.A[2]}}</span>
       </div>
       <div class="B1 grat" @click.self="paint('B', '0', turn)">
-        <span>{{tictacFrame.B[0]}}</span>
+        <span>{{tictacBoard.B[0]}}</span>
       </div>
       <div class="B2 grat" @click.self="paint('B', '1', turn)">
-        <span>{{tictacFrame.B[1]}}</span>
+        <span>{{tictacBoard.B[1]}}</span>
       </div>
       <div class="B3 grat" @click.self="paint('B', '2', turn)">
-        <span>{{tictacFrame.B[2]}}</span>
+        <span>{{tictacBoard.B[2]}}</span>
       </div>
       <div class="C1 grat" @click.self="paint('C', '0', turn)">
-        <span>{{tictacFrame.C[0]}}</span>
+        <span>{{tictacBoard.C[0]}}</span>
       </div>
       <div class="C2 grat" @click.self="paint('C', '1', turn)">
-        <span>{{tictacFrame.C[1]}}</span>
+        <span>{{tictacBoard.C[1]}}</span>
       </div>
       <div class="C3 grat" @click.self="paint('C', '2', turn)">
-        <span>{{tictacFrame.C[2]}}</span>
+        <span>{{tictacBoard.C[2]}}</span>
       </div>
     </div>
   </div>
@@ -54,6 +69,7 @@
 
 <script>
 import { setTimeout } from 'timers';
+import {checkingFrame} from '@/functions/checkFrame.js'
 class User {
   constructor(name, symbol, ranking) {
     this.name = name;
@@ -78,7 +94,7 @@ export default {
       },
       symbols: ['X', 'O'],
       turn: 0, //turn 0 = first player \ turn 1 = second player
-      tictacFrame: {
+      tictacBoard: {
         A: ['', '', ''],
         B: ['', '', ''],
         C: ['', '', '']
@@ -94,7 +110,7 @@ export default {
     createUser() {
       let regexSpaces = /^\S+(?: \S+)*$/;
 
-      if(this.players.length < 2 && this.playerRegister.name.match(regexSpaces)) {
+      if(this.players.length < 2 && this.playerRegister.name.match(regexSpaces) && this.playerRegister.symbol) {
 
         let newUser = new User(this.playerRegister.name, this.playerRegister.symbol, {win: 0, losses: 0})
 
@@ -102,9 +118,10 @@ export default {
         this.playerRegister.name = '';
 
         this.symbols.splice(this.symbols.indexOf(this.playerRegister.symbol), 1)
+        this.playerRegister.symbol = null;
       } 
       else {
-        this.msg = 'Por favor introduzca un nombre sin espacios'
+        this.msg = 'Por favor introduzca un nombre sin espacios y eliga un simbolo'
         setTimeout(() => {
           this.msg = ''
         }, 1500)
@@ -119,10 +136,21 @@ export default {
       if(this.gameStat === 'ON') {
 
         let playerSymbol = this.players[turnOfPlayer].symbol;
-        let square = this.tictacFrame[letter];
+        let rowArray = this.tictacBoard[letter];
 
-        this.$set(square, number, playerSymbol)
-        this.changeTurn()
+        if(!this.tictacBoard[letter][number]) {
+          
+          this.$set(rowArray, number, playerSymbol)
+          let result = checkingFrame(playerSymbol, this.tictacBoard)
+          console.log(result)
+          if(result) {
+            console.log('ha ganado!')
+          }
+          else {
+            this.changeTurn()
+          }
+
+        }
 
       }
 
@@ -154,7 +182,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
-.grid {
+.tictactoe-grid {
   width: 300px;
   height: 300px;
   display: grid;
@@ -174,12 +202,12 @@ export default {
     }
   }
 }
-.gameInfo {
+.game-board {
   width: 100%;
   height: 150px;
   display: flex;
   flex-direction: column;
-  .form {
+  &__register {
     width: 100%;
     height: 20%;
     display: flex;
@@ -194,8 +222,39 @@ export default {
       box-sizing: border-box;
     }
   }
-  .board {
-    height: 80%;
+  &__info {
+    width: 100%;
+    height: 100%;
+    border: 1px solid red;
+    .msgAlert {
+      font-size: 14px;
+    }
+    .player-board {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      &__descriptions {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+        align-items: center;
+        border: 1px solid red;
+      }
+      &__stats {
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        align-items: center;
+      }
+      &__turn {
+        height: 100%;
+        display: grid;
+        border: 1px solid red;
+        align-items: center;
+      }
+    }
   }
 }
 .symBtn {
