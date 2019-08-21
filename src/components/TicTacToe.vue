@@ -1,12 +1,12 @@
 <template>
   <div>
     <div class="game-board">
-      <div class="game-board__register" v-show="symbols !== 'full'">
-        <input type="text" placeholder="Name" v-model="playerRegister.name">
-        <button v-for="(sym, index) in symbols" :key="index" @click="symChosen(sym)"
-        :class="{'symBtnActive' : playerRegister.symbol === sym}" class="symBtn"
+      <div class="game-board__register" v-show="marks !== 'full'">
+        <input type="text" placeholder="Name" v-model="playerData.name">
+        <button v-for="(mark, index) in marks" :key="index" @click="markSelected(mark)"
+        :class="{'symBtnActive' : playerData.mark === mark}" class="symBtn"
         >
-          {{sym}}
+          {{mark}}
         </button>
         <button @click="createUser">Crear</button>
       </div>
@@ -30,124 +30,146 @@
             </div>
           </div>
           <div class="player-board__turn">
-            <h2>{{this.players[turn].symbol}}</h2>
+            <h2>{{this.players[turn].mark}}</h2>
           </div>
         </div>
       </div>
     </div>
     <div class="tictactoe-grid">
-      <div class="A1 grat" @click.self="paint('A', '0', turn)">
+      <div class="A1 grat" @click.self="toMark('A', '0', turn)">
         <span>{{tictacBoard.A[0]}}</span>
       </div>
-      <div class="A2 grat" @click.self="paint('A', '1', turn)">
+      <div class="A2 grat" @click.self="toMark('A', '1', turn)">
         <span>{{tictacBoard.A[1]}}</span>
       </div>
-      <div class="A3 grat" @click.self="paint('A', '2', turn)">
+      <div class="A3 grat" @click.self="toMark('A', '2', turn)">
         <span>{{tictacBoard.A[2]}}</span>
       </div>
-      <div class="B1 grat" @click.self="paint('B', '0', turn)">
+      <div class="B1 grat" @click.self="toMark('B', '0', turn)">
         <span>{{tictacBoard.B[0]}}</span>
       </div>
-      <div class="B2 grat" @click.self="paint('B', '1', turn)">
+      <div class="B2 grat" @click.self="toMark('B', '1', turn)">
         <span>{{tictacBoard.B[1]}}</span>
       </div>
-      <div class="B3 grat" @click.self="paint('B', '2', turn)">
+      <div class="B3 grat" @click.self="toMark('B', '2', turn)">
         <span>{{tictacBoard.B[2]}}</span>
       </div>
-      <div class="C1 grat" @click.self="paint('C', '0', turn)">
+      <div class="C1 grat" @click.self="toMark('C', '0', turn)">
         <span>{{tictacBoard.C[0]}}</span>
       </div>
-      <div class="C2 grat" @click.self="paint('C', '1', turn)">
+      <div class="C2 grat" @click.self="toMark('C', '1', turn)">
         <span>{{tictacBoard.C[1]}}</span>
       </div>
-      <div class="C3 grat" @click.self="paint('C', '2', turn)">
+      <div class="C3 grat" @click.self="toMark('C', '2', turn)">
         <span>{{tictacBoard.C[2]}}</span>
       </div>
     </div>
+    <Modal v-if="winner" :name="winner" :reset="resetGame">
+      <button @click="resetGame(turn)">Reiniciar</button>
+    </Modal>
   </div>
 </template>
 
 <script>
 import { setTimeout } from 'timers';
-import {checkingFrame} from '@/functions/checkFrame.js'
-class User {
-  constructor(name, symbol, ranking) {
+import {checkingResult} from '@/functions/checkResults.js';
+import Modal from './Modal';
+
+class Player {
+  constructor(name, mark, ranking) {
     this.name = name;
-    this.symbol = symbol;
+    this.mark = mark;
     this.ranking = {
       win: 0,
       losses: 0
-    }
-  }
-  showRanking() {
-    return this.ranking;
+    },
+    this.historyMoves = []
   }
 }
+
 export default {
   name: 'TicTacToe',
+  components: {
+    Modal
+  },
   data() {
     return {
       players: [],
-      playerRegister: {
+      playerData: {
         name: '',
-        symbol: null
+        mark: null
       },
-      symbols: ['X', 'O'],
+      marks: ['X', 'O'],
       turn: 0, //turn 0 = first player \ turn 1 = second player
       tictacBoard: {
         A: ['', '', ''],
         B: ['', '', ''],
         C: ['', '', '']
       },
-      msg: '',
-      gameStat: 'OFF'
+      msg: '', // display message when a player is registered incorretly
+      gameStat: 'OFF',
+      winner: '',
+      showModal: false
     }
   },
   created() {
-    this.symChosen('X')
+    this.markSelected('X')
   },
   methods: {
     createUser() {
       let regexSpaces = /^\S+(?: \S+)*$/;
 
-      if(this.players.length < 2 && this.playerRegister.name.match(regexSpaces) && this.playerRegister.symbol) {
+      if(this.players.length < 2 && this.playerData.name.match(regexSpaces) && this.playerData.mark) {
 
-        let newUser = new User(this.playerRegister.name, this.playerRegister.symbol, {win: 0, losses: 0})
+        let { name, mark } = this.playerData
+        let player = new Player(name, mark, {win: 0, losses: 0})
 
-        this.players.push(newUser);
-        this.playerRegister.name = '';
+        this.players.push(player);
+        this.playerData.name = '';
 
-        this.symbols.splice(this.symbols.indexOf(this.playerRegister.symbol), 1)
-        this.playerRegister.symbol = null;
-      } 
+        this.marks.splice(this.marks.indexOf(this.playerData.mark), 1)
+        this.playerData.mark = null;
+      }
+      //if there aren't two players or player name doesn't exist
       else {
-        this.msg = 'Por favor introduzca un nombre sin espacios y eliga un simbolo'
+        this.msg = 'Por favor introduzca un nombre sin espacios y eliga una marca'
         setTimeout(() => {
+          // after a time msg disappear
           this.msg = ''
         }, 1500)
       }
 
     },
-    symChosen(sym) {
-      this.playerRegister.symbol = sym
+    markSelected(mark) {
+      this.playerData.mark = mark
     },
-    paint(letter, number, turnOfPlayer) {
+    toMark(letter, number, turnOfPlayer) {
 
       if(this.gameStat === 'ON') {
-
-        let playerSymbol = this.players[turnOfPlayer].symbol;
+        
+        let currentPlayer = this.players[turnOfPlayer]
         let rowArray = this.tictacBoard[letter];
+        let gridSquare = this.tictacBoard[letter][number]
 
-        if(!this.tictacBoard[letter][number]) {
+        //checking if is a empty square
+        if(!gridSquare) {
           
-          this.$set(rowArray, number, playerSymbol)
-          let result = checkingFrame(playerSymbol, this.tictacBoard)
-          console.log(result)
+          currentPlayer.historyMoves.push(`${letter+number}`)
+          this.$set(rowArray, number, currentPlayer.mark)
+          let result = checkingResult(currentPlayer)
+          // console.log('hola')
           if(result) {
-            console.log('ha ganado!')
+            currentPlayer.ranking.win += 1
+            this.winner = currentPlayer.name
+            this.players.forEach(player => {
+              player.historyMoves = []
+            })
+            
+            console.log(`${currentPlayer.name} ha ganado!`)
           }
           else {
             this.changeTurn()
+            console.log(this.tictacBoard.A.length)
           }
 
         }
@@ -163,16 +185,24 @@ export default {
         case 1:
           this.turn = 0;
       }
+    },
+    resetGame(turn) {
+      let newTictacBoard = {
+        A: ['', '', ''],
+        B: ['', '', ''],
+        C: ['', '', '']
+      }
+      this.tictacBoard = newTictacBoard;
+      this.winner = '';
+      turn === 0 ? this.turn = 1 : this.turn = 0
+      // this.tictacBoard = Object.assign({}, newTictacBoard);
+      console.log('se hizo reset')
     }
   },
   watch: {
-    symbols() {
-      if(this.symbols.length === 0) {
-        this.symbols = 'full'
-      }
-    },
-    players() {
-      if(this.players.length > 1) {
+    marks() {
+      if(this.marks.length === 0) {
+        this.marks = 'full';
         this.gameStat = 'ON'
       }
     }
@@ -203,7 +233,7 @@ export default {
   }
 }
 .game-board {
-  width: 100%;
+  width: 300px;
   height: 150px;
   display: flex;
   flex-direction: column;

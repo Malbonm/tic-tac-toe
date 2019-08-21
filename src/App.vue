@@ -1,6 +1,5 @@
 <template>
   <div id="app">
-    <!-- <img alt="Vue logo" src="./assets/logo.png" width="100"> -->
     <div class="game-content">
       <TicTacToe></TicTacToe>
     </div>
@@ -13,7 +12,7 @@ import TicTacToe from './components/TicTacToe.vue'
 export default {
   name: 'app',
   components: {
-    TicTacToe
+    TicTacToe,
   },
   created() {
   }
@@ -41,6 +40,7 @@ body, html {
   align-items: center;
 }
 .game-content {
-  width: 300px;
+  min-width: 300px;
+  max-width: 600px;
 }
 </style>
