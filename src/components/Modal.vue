@@ -1,7 +1,8 @@
-<template>
+<template functional>
   <div class="modal">
     <div class="modal__content">
-        <h2>{{name}} ha ganado!</h2>
+        <h2 v-if="props.name">{{props.name}} ha ganado!</h2>
+        <h2 v-else>Draw!</h2>
         <slot></slot>
     </div>
   </div>
@@ -9,12 +10,6 @@
 
 <script>
 export default {
-  props: {
-    name: {
-      type: String,
-      required: true
-    }
-  }
 }
 </script>
 
@@ -31,13 +26,15 @@ export default {
   background: rgba(0,0,0,0.3);
   z-index: 10;
   &__content {
-    min-width: 300px;
-    max-width: 600px;
+    width: 95%;
     height: 200px;
     max-height: 400px;
     background: #ECEFF1;
     display: grid;
     align-items: center;
+    @media only screen and (min-width: 400px) {
+      width: 350px;
+    }
   }
 }
 </style>

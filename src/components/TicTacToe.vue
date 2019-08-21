@@ -2,13 +2,13 @@
   <div>
     <div class="game-board">
       <div class="game-board__register" v-show="marks !== 'full'">
-        <input type="text" placeholder="Name" v-model="playerData.name">
+        <input type="text" placeholder="Name" v-model="playerData.name" >
         <button v-for="(mark, index) in marks" :key="index" @click="markSelected(mark)"
-        :class="{'symBtnActive' : playerData.mark === mark}" class="symBtn"
+        :class="{'markBtnActive' : playerData.mark === mark}" class="markBtn"
         >
           {{mark}}
         </button>
-        <button @click="createUser">Crear</button>
+        <button class="createBtn" @click="createUser">Play</button>
       </div>
       <div class="game-board__info">
         <div class="msgAlert" v-if="gameStat === 'OFF'" style="margin-top: 2rem;">
@@ -16,56 +16,62 @@
         </div>
         <div v-if="gameStat === 'ON'" class="player-board">
           <div class="player-board__descriptions">
-            <div style="font-size: 24px; font-weight: 600;">{{players[0].name}}</div>
-            <div style="font-size: 24px; font-weight: 600;">{{players[1].name}}</div>
+            <div class="subtitle">Players</div>
+            <div class="grid-item" style="font-size: 24px; font-weight: 600;">{{players[0].name}}</div>
+            <div class="grid-item" style="font-size: 24px; font-weight: 600;">{{players[1].name}}</div>
           </div>
           <div class="player-board__stats">
-            <div>
+            <div class="">
+              <span class="subtitle" style="margin-right: 10px;">W</span>
+              <span class="subtitle" >L</span>
+            </div>
+            <div class="">
               <span style="font-size: 24px; font-weight: 600; margin-right: 10px;">{{this.players[0].ranking.win}}</span>
               <span style="font-size: 24px; font-weight: 600;">{{this.players[0].ranking.losses}}</span>
             </div>
-            <div>
+            <div class="">
               <span style="font-size: 24px; font-weight: 600; margin-right: 10px;">{{this.players[1].ranking.win}}</span>
               <span style="font-size: 24px; font-weight: 600;">{{this.players[1].ranking.losses}}</span>
             </div>
           </div>
           <div class="player-board__turn">
-            <h2>{{this.players[turn].mark}}</h2>
+            <div class="subtitle">Turn</div>
+            <div class="mark">{{this.players[turn].mark}}</div>
           </div>
         </div>
       </div>
     </div>
     <div class="tictactoe-grid">
-      <div class="A1 grat" @click.self="toMark('A', '0', turn)">
+      <div class="A0 square" @click.self="toMark('A', '0', turn)">
         <span>{{tictacBoard.A[0]}}</span>
       </div>
-      <div class="A2 grat" @click.self="toMark('A', '1', turn)">
+      <div class="A1 square" @click.self="toMark('A', '1', turn)">
         <span>{{tictacBoard.A[1]}}</span>
       </div>
-      <div class="A3 grat" @click.self="toMark('A', '2', turn)">
+      <div class="A2 square" @click.self="toMark('A', '2', turn)">
         <span>{{tictacBoard.A[2]}}</span>
       </div>
-      <div class="B1 grat" @click.self="toMark('B', '0', turn)">
+      <div class="B0 square" @click.self="toMark('B', '0', turn)">
         <span>{{tictacBoard.B[0]}}</span>
       </div>
-      <div class="B2 grat" @click.self="toMark('B', '1', turn)">
+      <div class="B1 square" @click.self="toMark('B', '1', turn)">
         <span>{{tictacBoard.B[1]}}</span>
       </div>
-      <div class="B3 grat" @click.self="toMark('B', '2', turn)">
+      <div class="B3 square" @click.self="toMark('B', '2', turn)">
         <span>{{tictacBoard.B[2]}}</span>
       </div>
-      <div class="C1 grat" @click.self="toMark('C', '0', turn)">
+      <div class="C2 square" @click.self="toMark('C', '0', turn)">
         <span>{{tictacBoard.C[0]}}</span>
       </div>
-      <div class="C2 grat" @click.self="toMark('C', '1', turn)">
+      <div class="C1 square" @click.self="toMark('C', '1', turn)">
         <span>{{tictacBoard.C[1]}}</span>
       </div>
-      <div class="C3 grat" @click.self="toMark('C', '2', turn)">
+      <div class="C2 square" @click.self="toMark('C', '2', turn)">
         <span>{{tictacBoard.C[2]}}</span>
       </div>
     </div>
-    <Modal v-if="winner" :name="winner" :reset="resetGame">
-      <button @click="resetGame(turn)">Reiniciar</button>
+    <Modal v-if="winner || draw === 9" :name="winner">
+      <button class="btnModal" @click="resetGame(turn)">Restart</button>
     </Modal>
   </div>
 </template>
@@ -109,7 +115,7 @@ export default {
       msg: '', // display message when a player is registered incorretly
       gameStat: 'OFF',
       winner: '',
-      showModal: false
+      draw: 0, // 0 to 9 points(turns) = draw
     }
   },
   created() {
@@ -147,6 +153,8 @@ export default {
 
       if(this.gameStat === 'ON') {
         
+        this.draw += 1
+
         let currentPlayer = this.players[turnOfPlayer]
         let rowArray = this.tictacBoard[letter];
         let gridSquare = this.tictacBoard[letter][number]
@@ -156,26 +164,24 @@ export default {
           
           currentPlayer.historyMoves.push(`${letter+number}`)
           this.$set(rowArray, number, currentPlayer.mark)
+
           let result = checkingResult(currentPlayer)
-          // console.log('hola')
+
           if(result) {
             currentPlayer.ranking.win += 1
             this.winner = currentPlayer.name
-            this.players.forEach(player => {
-              player.historyMoves = []
-            })
-            
-            console.log(`${currentPlayer.name} ha ganado!`)
+
+            this.turn === 0 ? this.turn = 1 : this.turn = 0 // change of turn
+            this.players[this.turn].ranking.losses += 1 // add 1 point to losses of the player
+          }
+          else if(this.draw === 9 && !this.winner) {
+            console.log('draw!')
           }
           else {
             this.changeTurn()
-            console.log(this.tictacBoard.A.length)
           }
-
         }
-
       }
-
     },
     changeTurn() {
       switch(this.turn) {
@@ -193,10 +199,11 @@ export default {
         C: ['', '', '']
       }
       this.tictacBoard = newTictacBoard;
+      this.draw = 0;
       this.winner = '';
-      turn === 0 ? this.turn = 1 : this.turn = 0
-      // this.tictacBoard = Object.assign({}, newTictacBoard);
-      console.log('se hizo reset')
+      this.players.forEach(player => {
+        player.historyMoves = []
+      })
     }
   },
   watch: {
@@ -213,33 +220,75 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
 .tictactoe-grid {
-  width: 300px;
-  height: 300px;
+  width: 100%;
+  height: 50vh;
+  padding: 0px 1%;
+  @media only screen and (min-width: 400px) {
+    width: 350px;
+    height: 350px;
+  }
   display: grid;
   grid-template-columns: 33.33% 33.33% 33.33%;
   grid-template: 33.33% 33.33% 33.33%;
-  .grat {
+  .square {
     width: 100%;
     height: 100%;
-    border: 0.5px solid black;
+    // border: 0.5px solid black;
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
     span {
       position: absolute;
-      font-size: 24px;
+      font-size: 34px;
+      font-weight: 900;
     }
+  }
+  .square:nth-child(1) {
+    border-bottom: 4px solid black;
+    border-right: 4px solid black;
+  }
+  .square:nth-child(2) {
+    border-bottom: 4px solid black;
+  }
+  .square:nth-child(3) {
+    border-bottom: 4px solid black;
+    border-left: 4px solid black;
+  }
+  .square:nth-child(4) {
+    border-bottom: 4px solid black;
+    border-right: 4px solid black;
+  }
+  .square:nth-child(5) {
+    border-bottom: 4px solid black;
+  }
+  .square:nth-child(6) {
+    border-bottom: 4px solid black;
+    border-left: 4px solid black;
+  }
+  .square:nth-child(7) {
+    border-right: 4px solid black;
+  }
+  // .square:nth-child(8) {
+  // }
+  .square:nth-child(9) {
+    border-left: 4px solid black;
   }
 }
 .game-board {
-  width: 300px;
+  width: 100%;
   height: 150px;
+  @media only screen and (min-width: 400px) {
+    width: 350px;
+    height: 150px;
+  }
   display: flex;
   flex-direction: column;
+  padding: 0px 1%;
+  margin-bottom: 40px;
   &__register {
     width: 100%;
-    height: 20%;
+    height: 60px;
     display: flex;
     justify-content: flex-start;
     input[type=text], select {
@@ -255,7 +304,7 @@ export default {
   &__info {
     width: 100%;
     height: 100%;
-    border: 1px solid red;
+    // border: 1px solid red;
     .msgAlert {
       font-size: 14px;
     }
@@ -269,28 +318,73 @@ export default {
         height: 100%;
         display: grid;
         grid-template-columns: 1fr;
-        grid-template-rows: 1fr 1fr;
+        grid-template-rows: 30px 1fr 1fr;
         align-items: center;
-        border: 1px solid red;
+        // border: 1px solid red;
       }
       &__stats {
         display: grid;
-        grid-template-rows: 1fr 1fr;
+        grid-template-columns: 1fr;
+        grid-template-rows: 30px 1fr 1fr;
         align-items: center;
       }
       &__turn {
         height: 100%;
         display: grid;
-        border: 1px solid red;
+        grid-template-columns: 1fr;
+        grid-template-rows: 30px 1fr;
         align-items: center;
+        align-items: center;
+        .mark {
+          font-size: 34px;
+          font-weight: 900;
+        }
       }
     }
   }
 }
-.symBtn {
-  outline: none;
+.grid-item {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow:hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.symBtnActive {
-  background: green;
+.subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+.markBtn {
+  outline: none;
+  width: 60px;
+  font-size: 16px;
+  border: none;
+  background: transparent;
+}
+.createBtn {
+  outline: none;
+  width: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  background: #00E676;
+  border: none;
+}
+.markBtnActive {
+  background: #CFD8DC;
+}
+.btnModal {
+  border: none;
+  width: 50%;
+  height: 50px;
+  background: #00E676;
+  font-size: 16px;
+  margin: auto;
+  outline: none;
 }
 </style>
