@@ -1,17 +1,12 @@
 <template functional>
   <div class="modal">
-    <div class="modal__content">
-        <h2 v-if="props.name">{{props.name}} ha ganado!</h2>
-        <h2 v-else>Draw!</h2>
-        <slot></slot>
-    </div>
+      <div class="modal__content">
+          <h2 v-if="props.name">{{props.name}} ha ganado!</h2>
+          <h2 v-else>Draw!</h2>
+          <slot></slot>
+      </div>
   </div>
 </template>
-
-<script>
-export default {
-}
-</script>
 
 <style lang="scss">
 .modal {

@@ -1,26 +1,36 @@
 <template>
   <div>
     <div class="game-board">
+      <!-------------------------- GAME BOARD REGISTRATION-------------------------->
       <div class="game-board__register" v-show="marks !== 'full'">
         <input type="text" placeholder="Name" v-model="playerData.name" >
         <button v-for="(mark, index) in marks" :key="index" @click="markSelected(mark)"
-        :class="{'markBtnActive' : playerData.mark === mark}" class="markBtn"
+        :class="{'game-board__register-btn--active' : playerData.mark === mark}" 
+        class="game-board__register-btn"
         >
           {{mark}}
         </button>
-        <button class="createBtn" @click="createUser">Play</button>
+        <button class="game-board__register-createBtn" @click="createUser">Play</button>
       </div>
+      <!-------------------------- END GAME BOARD REGISTRATION ----------------------->
+
+      <!-------------------------- GAME BOARD -------------------------->
       <div class="game-board__info">
-        <div class="msgAlert" v-if="gameStat === 'OFF'" style="margin-top: 2rem;">
+        <div class="game-board__info-msgContent" v-if="gameStat === 'OFF'">
           {{msg}}
         </div>
-        <div v-if="gameStat === 'ON'" class="player-board">
-          <div class="player-board__descriptions">
+        <div v-if="gameStat === 'ON'" class="game-board__info-board">
+
+          <!-------------------------- NAMES -------------------------->
+          <div class="game-board__info-board__descriptions">
             <div class="subtitle">Players</div>
-            <div class="grid-item" style="font-size: 24px; font-weight: 600;">{{players[0].name}}</div>
-            <div class="grid-item" style="font-size: 24px; font-weight: 600;">{{players[1].name}}</div>
+            <div class="name">{{players[0].name}}</div>
+            <div class="name">{{players[1].name}}</div>
           </div>
-          <div class="player-board__stats">
+          <!-------------------------- END NAMES -------------------------->
+          
+          <!-------------------------- STATS -------------------------->
+          <div class="game-board__info-board__stats">
             <div class="">
               <span class="subtitle" style="margin-right: 10px;">W</span>
               <span class="subtitle" >L</span>
@@ -34,19 +44,26 @@
               <span style="font-size: 24px; font-weight: 600;">{{this.players[1].ranking.losses}}</span>
             </div>
           </div>
-          <div class="player-board__turn">
+          <!-------------------------- END STATS -------------------------->
+
+          <!-------------------------- TURNS -------------------------->
+          <div class="game-board__info-board__turn">
             <div class="subtitle">Turn</div>
             <div class="mark">{{this.players[turn].mark}}</div>
           </div>
+          <!-------------------------- END TURNS -------------------------->
         </div>
       </div>
+      <!-------------------------- END GAME BOARD -------------------------->
     </div>
+
+    <!-------------------------- TIC-TAC-TOE GRID -------------------------->
     <div class="tictactoe-grid">
       <div class="A0 square" @click.self="toMark('A', '0', turn)">
-        <span>{{tictacBoard.A[0]}}</span>
+        <span >{{tictacBoard.A[0]}}</span>
       </div>
       <div class="A1 square" @click.self="toMark('A', '1', turn)">
-        <span>{{tictacBoard.A[1]}}</span>
+        <span >{{tictacBoard.A[1]}}</span>
       </div>
       <div class="A2 square" @click.self="toMark('A', '2', turn)">
         <span>{{tictacBoard.A[2]}}</span>
@@ -57,10 +74,10 @@
       <div class="B1 square" @click.self="toMark('B', '1', turn)">
         <span>{{tictacBoard.B[1]}}</span>
       </div>
-      <div class="B3 square" @click.self="toMark('B', '2', turn)">
+      <div class="B2 square" @click.self="toMark('B', '2', turn)">
         <span>{{tictacBoard.B[2]}}</span>
       </div>
-      <div class="C2 square" @click.self="toMark('C', '0', turn)">
+      <div class="C0 square" @click.self="toMark('C', '0', turn)">
         <span>{{tictacBoard.C[0]}}</span>
       </div>
       <div class="C1 square" @click.self="toMark('C', '1', turn)">
@@ -70,9 +87,16 @@
         <span>{{tictacBoard.C[2]}}</span>
       </div>
     </div>
-    <Modal v-if="winner || draw === 9" :name="winner">
-      <button class="btnModal" @click="resetGame(turn)">Restart</button>
-    </Modal>
+    <!-------------------------- END TIC-TAC-TOE GRID -------------------------->
+
+    <!-------------------------- MODAL -------------------------->
+    <transition name="modalAnimation">
+      <Modal v-if="winner || draw === 9" :name="winner">
+        <button class="btnModal" @click="resetGame(turn)">Restart</button>
+      </Modal>
+    </transition>
+    <!-------------------------- END MODAL -------------------------->
+
   </div>
 </template>
 
@@ -112,7 +136,7 @@ export default {
         B: ['', '', ''],
         C: ['', '', '']
       },
-      msg: '', // display message when a player is registered incorretly
+      msg: null, // display message when a player is registered incorretly
       gameStat: 'OFF',
       winner: '',
       draw: 0, // 0 to 9 points(turns) = draw
@@ -139,10 +163,6 @@ export default {
       //if there aren't two players or player name doesn't exist
       else {
         this.msg = 'Por favor introduzca un nombre sin espacios y eliga una marca'
-        setTimeout(() => {
-          // after a time msg disappear
-          this.msg = ''
-        }, 1500)
       }
 
     },
@@ -158,21 +178,25 @@ export default {
         let currentPlayer = this.players[turnOfPlayer]
         let rowArray = this.tictacBoard[letter];
         let gridSquare = this.tictacBoard[letter][number]
-
         //checking if is a empty square
         if(!gridSquare) {
-          
+
           currentPlayer.historyMoves.push(`${letter+number}`)
+
           this.$set(rowArray, number, currentPlayer.mark)
 
+          //adding animation
+          document.querySelector(`.${letter+number}`).firstChild.classList.add('animate');
+
+          //checking in the function if the code has a winning combo
           let result = checkingResult(currentPlayer)
 
           if(result) {
-            currentPlayer.ranking.win += 1
+            currentPlayer.ranking.win += 1 // adding 1 point to win column of the winner
             this.winner = currentPlayer.name
 
             this.turn === 0 ? this.turn = 1 : this.turn = 0 // change of turn
-            this.players[this.turn].ranking.losses += 1 // add 1 point to losses of the player
+            this.players[this.turn].ranking.losses += 1 // adding 1 point to losses column of the other player
           }
           else if(this.draw === 9 && !this.winner) {
             console.log('draw!')
@@ -193,6 +217,10 @@ export default {
       }
     },
     resetGame(turn) {
+      let squares = document.querySelectorAll('.square');
+      squares.forEach(square => {
+        square.firstChild.classList.remove('animate')
+      })
       let newTictacBoard = {
         A: ['', '', ''],
         B: ['', '', ''],
@@ -212,6 +240,14 @@ export default {
         this.marks = 'full';
         this.gameStat = 'ON'
       }
+    },
+    msg() {
+      if(this.msg) {
+        setTimeout(() => {
+          // after a time msg disappear
+          this.msg = ''
+        }, 1500)
+      }
     }
   }
 }
@@ -220,7 +256,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
 .tictactoe-grid {
-  width: 100%;
+  width: 100vw;
   height: 50vh;
   padding: 0px 1%;
   @media only screen and (min-width: 400px) {
@@ -233,7 +269,6 @@ export default {
   .square {
     width: 100%;
     height: 100%;
-    // border: 0.5px solid black;
     position: relative;
     display: flex;
     justify-content: center;
@@ -242,6 +277,11 @@ export default {
       position: absolute;
       font-size: 34px;
       font-weight: 900;
+      transition: .2s;
+      transform: scale(0.1);
+    }
+    .animate {
+      transform: scale(1);
     }
   }
   .square:nth-child(1) {
@@ -269,14 +309,12 @@ export default {
   .square:nth-child(7) {
     border-right: 4px solid black;
   }
-  // .square:nth-child(8) {
-  // }
   .square:nth-child(9) {
     border-left: 4px solid black;
   }
 }
 .game-board {
-  width: 100%;
+  width: 100vw;
   height: 150px;
   @media only screen and (min-width: 400px) {
     width: 350px;
@@ -300,15 +338,35 @@ export default {
       border: 0.5px solid #999;
       box-sizing: border-box;
     }
+    &-btn {
+      outline: none;
+      width: 60px;
+      font-size: 16px;
+      border: none;
+      background: transparent;
+      &--active {
+        background: #CFD8DC;
+      }
+    }
+    &-createBtn {
+      outline: none;
+      width: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 16px;
+      background: #00E676;
+      border: none;
+    }
   }
   &__info {
     width: 100%;
     height: 100%;
-    // border: 1px solid red;
-    .msgAlert {
+    &-msgContent {
       font-size: 14px;
+      margin-top: 2rem;
     }
-    .player-board {
+    &-board {
       width: 100%;
       height: 100%;
       display: grid;
@@ -320,13 +378,24 @@ export default {
         grid-template-columns: 1fr;
         grid-template-rows: 30px 1fr 1fr;
         align-items: center;
-        // border: 1px solid red;
+        .name {
+          font-size: 24px;
+          font-weight: 600;
+          overflow:hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
       }
       &__stats {
         display: grid;
         grid-template-columns: 1fr;
         grid-template-rows: 30px 1fr 1fr;
         align-items: center;
+        .subtitle {
+          font-size: 16px;
+          font-weight: 400;
+          letter-spacing: 1px;
+        }
       }
       &__turn {
         height: 100%;
@@ -343,41 +412,13 @@ export default {
     }
   }
 }
-.grid-item {
-  width: 100%;
-  height: 100%;
-  display: flex;
+.center {
+  display: grid;
   justify-content: center;
-  align-items: center;
-  overflow:hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
-.subtitle {
-  font-size: 16px;
-  font-weight: 400;
-  letter-spacing: 1px;
-}
-.markBtn {
-  outline: none;
-  width: 60px;
-  font-size: 16px;
-  border: none;
-  background: transparent;
-}
-.createBtn {
-  outline: none;
-  width: 60px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 16px;
-  background: #00E676;
-  border: none;
-}
-.markBtnActive {
-  background: #CFD8DC;
-}
+
+
+// ######################  BUTTON MODAL #########################
 .btnModal {
   border: none;
   width: 50%;
@@ -386,5 +427,25 @@ export default {
   font-size: 16px;
   margin: auto;
   outline: none;
+}
+
+
+// ######################  ANIMATION #########################
+.modalAnimation-enter-active {
+  animation: modalAnimation-in .5s;
+}
+.modalAnimation-leave-active {
+  animation: modalAnimation-in .5s reverse;
+}
+@keyframes modalAnimation-in {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 </style>

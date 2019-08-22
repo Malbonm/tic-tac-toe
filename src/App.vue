@@ -1,8 +1,6 @@
 <template>
   <div id="app">
-    <div class="game-content">
-      <TicTacToe></TicTacToe>
-    </div>
+    <TicTacToe></TicTacToe>
   </div>
 </template>
 
@@ -41,8 +39,5 @@ body, html {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-}
-.game-content {
-  width: 100%;
 }
 </style>
