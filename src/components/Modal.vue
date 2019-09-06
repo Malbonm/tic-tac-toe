@@ -2,7 +2,7 @@
   <div class="modal">
       <div class="modal__content">
           <h2 v-if="props.name">{{props.name}} ha ganado!</h2>
-          <h2 v-else>Draw!</h2>
+          <h2 v-else>Empate!</h2>
           <slot></slot>
       </div>
   </div>

@@ -92,7 +92,7 @@
     <!-------------------------- MODAL -------------------------->
     <transition name="modalAnimation">
       <Modal v-if="winner || draw === 9" :name="winner">
-        <button class="btnModal" @click="resetGame(turn)">Restart</button>
+        <button class="btnModal" @click="resetGame(turn)">Reiniciar</button>
       </Modal>
     </transition>
     <!-------------------------- END MODAL -------------------------->
