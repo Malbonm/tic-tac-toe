@@ -136,7 +136,7 @@ export default {
         B: ['', '', ''],
         C: ['', '', '']
       },
-      msg: null, // display message when a player is registered incorretly
+      msg: null, // display message when a player is registered incorrectly
       gameStat: 'OFF',
       winner: '',
       draw: 0, // 0 to 9 points(turns) = draw
@@ -160,7 +160,7 @@ export default {
         this.marks.splice(this.marks.indexOf(this.playerData.mark), 1)
         this.playerData.mark = null;
       }
-      //if there aren't two players or player name doesn't exist
+      // if there aren't two players or player name doesn't exist
       else {
         this.msg = 'Por favor introduzca un nombre sin espacios y eliga una marca'
       }
@@ -178,6 +178,7 @@ export default {
         let currentPlayer = this.players[turnOfPlayer]
         let rowArray = this.tictacBoard[letter];
         let gridSquare = this.tictacBoard[letter][number]
+
         //checking if is a empty square
         if(!gridSquare) {
 
