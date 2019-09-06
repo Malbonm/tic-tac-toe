@@ -11,8 +11,8 @@ npm run serve
 ```
 
 ![alt text](https://i.imgur.com/pHFlwbb.png)
-![alt text](https://i.imgur.com/DGFqMd9.png)
-![alt text](https://i.imgur.com/1EvsS6Y.png)
+![alt text](https://i.imgur.com/5erQp4I.png)
+![alt text](https://i.imgur.com/dIl6iav.png)
 
 
 ## Live Demo
